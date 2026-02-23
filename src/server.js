@@ -1,9 +1,9 @@
 const app = require("./app/app");
-const { PORT } = require("./config/env");
+const { port } = require("./config/env");
 
 function startServer() {
-  app.listen(PORT, () => {
-    console.log(`✅ API rodando na porta ${PORT}`);
+  app.listen(port, () => {
+    console.log(`API rodando na porta ${port}`);
   });
 }
 

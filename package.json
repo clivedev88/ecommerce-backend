@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/app/server.js",
-    "start": "node src/app/server.js",
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
     "test": "jest --runInBand",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
