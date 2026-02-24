@@ -22,7 +22,8 @@ class CouponService {
       const coupons = await prisma.cupons.findMany();
       return coupons;
     } catch (error) {
-      throw new Error("Erro ao listar cupons");
+      // throw new Error("Erro ao listar cupons");
+      throw new Error(error.message);
     }
   }
 

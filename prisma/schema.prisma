@@ -33,9 +33,9 @@ model categoria {
 model cupons {
   id         Int       @id @default(autoincrement())
   nome       String    @db.VarChar(50)
-  quantidade BigInt
+  quantidade Int
   validade   DateTime  @db.Date
-  valor_desc BigInt    @default(0)
+  valor_desc Int    @default(0)
   pedidos    pedidos[]
 }
 
