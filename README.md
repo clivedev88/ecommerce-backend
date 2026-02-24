@@ -13,7 +13,7 @@ Arquitetura **modular por feature** com padrão: **service → controller → ro
 - Banco: Neon (Postgres) + Prisma (`prisma/schema.prisma`)
 - Variáveis de ambiente: **`src/.env`** (e **`src/.env.example`**)
 
-**Exemplo de módulo já criado (modelo para o time copiar):**  
+**Exemplo de módulo já criado:**  
 `src/modules/coupons/`
 - `coupon.routes.js`
 - `coupon.controller.js`
@@ -42,7 +42,7 @@ Arquitetura **modular por feature** com padrão: **service → controller → ro
 
 ---
 
-# 🚫 REGRA CRÍTICA: NÃO TRABALHAR NA MAIN DO DONO
+# 🚫 REGRA CRÍTICA: NÃO TRABALHAR NA MAIN
 Este repositório é o **repositório central** (upstream).  
 Ninguém deve commitar diretamente na branch `main` do repo do dono.
 
@@ -50,15 +50,15 @@ Ninguém deve commitar diretamente na branch `main` do repo do dono.
 1) **Fork** do repositório
 2) Criar branch no seu fork
 3) Implementar e commitar no seu fork
-4) Abrir **Pull Request** (PR) para o repo do dono
-5) O dono revisa e faz **MERGE**
+4) Abrir **Pull Request** (PR) para o repo´sitório inicial
+5) O líder revisa e faz **MERGE**
 
 ---
 
 ## ✅ Como começar (Time – Fork & Branch)
 
 ### 1) Fazer FORK (obrigatório)
-No GitHub do repo do dono:
+No GitHub do repo do líder:
 - Clique em **Fork** (canto superior direito)
 - Isso cria: `SEU_USUARIO/ecommerce-backend`
 
@@ -68,7 +68,7 @@ git clone https://github.com/SEU_USUARIO/ecommerce-backend.git
 cd ecommerce-backend
 ```
 
-### 3) Adicionar o remoto do dono (upstream)
+### 3) Adicionar o remoto do líder (upstream)
 ```bash
 git remote add upstream https://github.com/DONO_DO_REPO/ecommerce-backend.git
 git remote -v
@@ -139,21 +139,16 @@ npm run prisma:migrate
 
 # ✅ Banco de Dados (Neon) + Prisma
 
-## 👑 Responsabilidade do DONO do repositório
+## 👑 Responsabilidade do líder do repositório
 O dono cria o projeto no Neon e define a connection string oficial.
 
-### 1) Criar banco no Neon (resumo)
-- Criar projeto (ex: `ecommerce`)
-- Postgres version: 17 (ok)
-- Neon Auth: **OFF**
-- Copiar a **connection string** (com `sslmode=require`)
-
+### 1) Criado  no Neon (resumo)
 A string costuma ser assim:
 ```
 postgresql://USER:PASSWORD@HOST/DB?sslmode=require
 ```
 
-### 2) Colar no `.env`
+### 2) Encontrado `.env`
 No `src/.env`:
 ```env
 DATABASE_URL="postgresql://....?sslmode=require"
@@ -214,15 +209,15 @@ Cada dev deve entregar **CREATE + READ com MOCK**, seguindo:
 - Não travar implementação esperando “pedido depende de produto”
 - Não implementar integrações profundas entre módulos
 
-> Na terça, o dono fará merge e iniciaremos a fase DB (Prisma/Neon) + validações/middlewares.
+> Na terça, o líder fará merge e iniciaremos a fase DB (Prisma/Neon) + validações/middlewares.
 
 ---
 
-# ✅ Como entregar (PR para o dono)
+# ✅ Como entregar (PR para o líder)
 ### 1) Commit
 ```bash
 git add .
-git commit -m "feat: create/read mock for products"
+git commit -m "feat: create/read mock p/ products"
 ```
 
 ### 2) Push para seu fork
@@ -238,12 +233,12 @@ No GitHub do seu fork:
 - Head repo: `SEU_USUARIO/ecommerce-backend`
 - Compare branch: `feature/NOME_DA_TAREFA`
 
-✅ O dono revisa e faz merge.
+✅ O líder revisa e faz merge.
 
 ---
 
-## ✅ Como atualizar seu fork com mudanças do dono (upstream)
-Depois que o dono fizer merge:
+## ✅ Como atualizar seu fork com mudanças do líder (upstream)
+Depois que o líder fizer merge:
 ```bash
 git checkout main
 git fetch upstream
