@@ -35,7 +35,7 @@ model cupons {
   nome       String    @db.VarChar(50)
   quantidade Int
   validade   DateTime  @db.Date
-  valor_desc Int    @default(0)
+  valor_desc Int       @default(0)
   pedidos    pedidos[]
 }
 
@@ -62,7 +62,7 @@ model pedidos {
   cep              String           @db.VarChar(255)
   cod_rastreio     String?          @db.VarChar(100)
   previsao_entrega DateTime         @db.Date
-  cupom_id         Int?          @default(0)
+  cupom_id         Int?             @default(0)
   pedido_produto   pedido_produto[]
   usuarios         usuarios         @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pedidos_fk1")
   cupons           cupons?          @relation(fields: [cupom_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pedidos_fk14")
@@ -101,15 +101,16 @@ model tamanhos {
 }
 
 model usuarios {
-  id         Int          @id @default(autoincrement())
-  nome       String       @db.VarChar(50)
-  genero     String       @db.VarChar(15)
-  cpf        String       @unique @db.VarChar(11)
-  email      String       @unique @db.VarChar(50)
-  telefone   String       @db.VarChar(255)
-  senha      String       @db.VarChar(255)
-  nivel      String       @default("cliente") @db.VarChar(10)
-  data_nasc  DateTime     @db.Date
-  avaliacoes avaliacoes[]
-  pedidos    pedidos[]
+  id              Int          @id @default(autoincrement())
+  nome            String       @db.VarChar(50)
+  genero          String       @db.VarChar(15)
+  cpf             String       @unique @db.VarChar(11)
+  email           String       @unique @db.VarChar(50)
+  telefone        String       @db.VarChar(255)
+  senha           String       @db.VarChar(255)
+  nivel           String       @default("cliente") @db.VarChar(10)
+  data_nasc       DateTime     @db.Date
+  emailVerificado Boolean?     @default(false)
+  avaliacoes      avaliacoes[]
+  pedidos         pedidos[]
 }
