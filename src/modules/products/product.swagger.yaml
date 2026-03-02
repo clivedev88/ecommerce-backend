@@ -90,6 +90,87 @@ paths:
         '500':
           description: Erro interno
 
+    put:
+      tags:
+        - Products
+      summary: Atualizar produto completo
+      description: |
+        Atualiza todos os dados de um produto existente.
+        
+        **Observação:** Usa PUT para substituição completa do recurso
+      operationId: updateProduct
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do produto
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateInput'
+            example:
+              nome: "Chaveiro React Atualizado"
+              valor: "25.00"
+              descricao: "Chaveiro com logo React - Nova versão"
+              desconto: 10
+              estoque: 50
+              categoria_id: 1
+              tamanhos: "Pequeno, Médio"
+              cores: "Azul, Vermelho"
+              altura: "5cm"
+              largura: "5cm"
+              comprimento: "1cm"
+              peso: "15g"
+      responses:
+        '200':
+          description: Produto atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '404':
+          description: Produto não encontrado
+        '500':
+          description: Erro interno
+
+    delete:
+      tags:
+        - Products
+      summary: Deletar produto
+      description: |
+        Remove um produto do sistema permanentemente.
+        
+        **Atenção:** Esta operação não pode ser desfeita
+      operationId: deleteProduct
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do produto
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Produto deletado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Produto deletado com sucesso"
+        '404':
+          description: Produto não encontrado
+        '500':
+          description: Erro interno
+
 components:
   schemas:
     ProductCreateInput:

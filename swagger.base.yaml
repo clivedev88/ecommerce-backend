@@ -37,6 +37,8 @@ tags:
     description: Gerenciamento de cupons de desconto
   - name: Orders
     description: Gerenciamento de pedidos
+  - name: Users
+    description: Gerenciamento de usuários e autenticação
 
 components:
   securitySchemes:

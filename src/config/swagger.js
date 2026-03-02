@@ -25,6 +25,10 @@ const orderSwagger = YAML.parse(
   fs.readFileSync(path.join(__dirname, '../modules/orders/order.swagger.yaml'), 'utf8')
 );
 
+const userSwagger = YAML.parse(
+  fs.readFileSync(path.join(__dirname, '../modules/users/users.swagger.yaml'), 'utf8')
+);
+
 // Mesclar tudo
 const swaggerDocument = {
   ...baseSwagger,
@@ -33,6 +37,7 @@ const swaggerDocument = {
     ...productSwagger.paths,
     ...couponSwagger.paths,
     ...orderSwagger.paths,
+    ...userSwagger.paths,
   },
   components: {
     ...baseSwagger.components,
@@ -40,6 +45,7 @@ const swaggerDocument = {
       ...productSwagger.components?.schemas,
       ...couponSwagger.components?.schemas,
       ...orderSwagger.components?.schemas,
+      ...userSwagger.components?.schemas,
     }
   }
 };
