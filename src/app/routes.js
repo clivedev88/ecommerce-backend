@@ -7,6 +7,8 @@ const productRoutes = require("../modules/products/product.routes");
 const userRoutes = require("../modules/users/users.routes");
 const produtoRoutes = require("../modules/products/produto.routes")
 
+const authRoutes = require("../modules/auth/auth.routes");
+
 const router = Router();
 
 // Base
@@ -16,5 +18,7 @@ router.use("/coupons", couponRoutes);
 router.use("/products", productRoutes);
 router.use("/users", userRoutes);
 router.use("/produtos", produtoRoutes);
+
+router.use("/auth", authRoutes);
 
 module.exports = router;

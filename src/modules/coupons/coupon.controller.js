@@ -2,34 +2,69 @@ const CouponService = require("./coupon.service");
 
 class CouponController {
   static async create(req, res) {
-    const { nome, quantidade, validade, valor_desc } = req.body;
     try {
-      const newCoupon = await CouponService.createCoupon(nome, quantidade, validade, valor_desc);
-      res.status(201).json(newCoupon);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-
-  static async getAll(req, res) {
-    try {
-      const coupons = await CouponService.getAllCoupons();
-      res.status(200).json(coupons);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-
-  static async getById(req, res) {
-    const { id } = req.params;
-    try {
-      const coupon = await CouponService.getCouponById(id);
-      if (!coupon) {
-        return res.status(404).json({ error: "Cupom não encontrado" });
+      const { nome, quantidade, validade, valor_desc } = req.body;
+      
+      if (!nome || !quantidade || !validade || !valor_desc) {
+        return res.status(400).json({ erro: "Todos os campos são obrigatórios" });
       }
-      res.status(200).json(coupon);
+
+      const coupon = await CouponService.create(req.body);
+      res.status(201).json(coupon);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(400).json({ erro: error.message });
+    }
+  }
+
+  static async findAll(req, res) {
+    try {
+      const coupons = await CouponService.findAll();
+      res.json(coupons);
+    } catch (error) {
+      res.status(400).json({ erro: error.message });
+    }
+  }
+
+  static async findById(req, res) {
+    try {
+      const { id } = req.params;
+      const coupon = await CouponService.findById(id);
+      if (!coupon) {
+        return res.status(404).json({ erro: "Cupom não encontrado" });
+      }
+      res.json(coupon);
+    } catch (error) {
+      res.status(400).json({ erro: error.message });
+    }
+  }
+
+  static async update(req, res) {
+    try {
+      const { id } = req.params;
+      const coupon = await CouponService.update(id, req.body);
+      res.json(coupon);
+    } catch (error) {
+      res.status(400).json({ erro: error.message });
+    }
+  }
+
+  static async delete(req, res) {
+    try {
+      const { id } = req.params;
+      await CouponService.delete(id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(400).json({ erro: error.message });
+    }
+  }
+
+  static async validar(req, res) {
+    try {
+      const { id } = req.params;
+      const cupom = await CouponService.validarCupom(id);
+      res.json({ valido: true, cupom });
+    } catch (error) {
+      res.status(400).json({ valido: false, erro: error.message });
     }
   }
 }
