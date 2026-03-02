@@ -8,9 +8,9 @@ class ProductService {
           nome: data.nome,
           valor: data.valor,
           descricao: data.descricao,
-          desconto: data.desconto || 0,
-          estoque: data.estoque,
-          categoria_id: data.categoria_id,
+          desconto: data.desconto ? BigInt(data.desconto) : BigInt(0),
+          estoque: BigInt(data.estoque),
+          categoria_id: parseInt(data.categoria_id),
           tamanhos: data.tamanhos,
           cores: data.cores,
           altura: data.altura,
@@ -22,7 +22,8 @@ class ProductService {
 
       return product;
     } catch (error) {
-      throw new Error("Erro ao criar produto");
+      console.error('Erro ao criar produto:', error);
+      throw new Error(`Erro ao criar produto: ${error.message}`);
     }
   }
 
@@ -32,13 +33,23 @@ class ProductService {
         include: {
           categoria: true,
           produto_imagens: true,
-          avaliacoes: true,
+          avaliacoes: {
+            include: {
+              usuarios: {
+                select: {
+                  id: true,
+                  nome: true,
+                }
+              }
+            }
+          },
         },
       });
 
       return products;
     } catch (error) {
-      throw new Error("Erro ao listar produtos");
+      console.error('Erro ao listar produtos:', error);
+      throw new Error(`Erro ao listar produtos: ${error.message}`);
     }
   }
 
@@ -51,13 +62,23 @@ class ProductService {
         include: {
           categoria: true,
           produto_imagens: true,
-          avaliacoes: true,
+          avaliacoes: {
+            include: {
+              usuarios: {
+                select: {
+                  id: true,
+                  nome: true,
+                }
+              }
+            }
+          },
         },
       });
 
       return product;
     } catch (error) {
-      throw new Error("Erro ao buscar produto");
+      console.error('Erro ao buscar produto:', error);
+      throw new Error(`Erro ao buscar produto: ${error.message}`);
     }
   }
 

@@ -1,0 +1,57 @@
+openapi: 3.0.3
+info:
+  title: E-commerce Backend API
+  description: |
+    API RESTful para sistema de E-commerce desenvolvida com Node.js, Express, PostgreSQL (Neon) e Prisma ORM.
+    
+    **Arquitetura:** Modular por feature (service → controller → routes)
+    
+    **Autenticação:** JWT Bearer Token
+    
+    **Base URL:** `/api`
+    
+    ## Recursos Disponíveis
+    - Health Check
+    - Produtos (CRUD completo com relacionamentos)
+    - Cupons (CRUD com autenticação)
+    - Pedidos (Criação com validação de estoque)
+    
+  version: 1.0.0
+  contact:
+    name: E-commerce Team
+  license:
+    name: ISC
+
+servers:
+  - url: http://localhost:3000/api
+    description: Servidor de Desenvolvimento
+  - url: https://api.ecommerce.com/api
+    description: Servidor de Produção
+
+tags:
+  - name: Health
+    description: Verificação de saúde da API
+  - name: Products
+    description: Gerenciamento de produtos
+  - name: Coupons
+    description: Gerenciamento de cupons de desconto
+  - name: Orders
+    description: Gerenciamento de pedidos
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Autenticação via JWT Bearer Token.
+        
+        **Como usar:**
+        1. Obtenha o token JWT através do endpoint de autenticação
+        2. Adicione o header: `Authorization: Bearer {token}`
+        
+        **Validação:**
+        - Token é obrigatório para rotas protegidas
+        - Token deve ser válido e não expirado
+        - Retorna 401 se token ausente ou inválido

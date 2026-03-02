@@ -1,0 +1,148 @@
+paths:
+  /coupons:
+    post:
+      tags:
+        - Coupons
+      summary: Criar novo cupom
+      description: Cria um novo cupom de desconto no sistema
+      operationId: createCoupon
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponCreateInput'
+            example:
+              nome: "NATAL2024"
+              quantidade: 100
+              validade: "2024-12-25"
+              valor_desc: 30
+      responses:
+        '201':
+          description: Cupom criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CouponResponse'
+        '400':
+          description: Requisição inválida
+        '500':
+          description: Erro interno
+
+    get:
+      tags:
+        - Coupons
+      summary: Listar todos os cupons
+      description: |
+        Retorna lista completa de cupons cadastrados.
+        
+        **Requer autenticação JWT**
+      operationId: getAllCoupons
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de cupons retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CouponResponse'
+        '401':
+          description: Não autorizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensagem:
+                    type: string
+                    example: "Token é obrigatório"
+        '500':
+          description: Erro interno
+
+  /coupons/{id}:
+    get:
+      tags:
+        - Coupons
+      summary: Buscar cupom por ID
+      description: Retorna um cupom específico pelo ID
+      operationId: getCouponById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do cupom
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Cupom encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CouponResponse'
+        '404':
+          description: Cupom não encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Cupom não encontrado"
+        '500':
+          description: Erro interno
+
+components:
+  schemas:
+    CouponCreateInput:
+      type: object
+      required:
+        - nome
+        - quantidade
+        - validade
+        - valor_desc
+      properties:
+        nome:
+          type: string
+          maxLength: 50
+          description: Nome/código do cupom
+          example: "NATAL2024"
+        quantidade:
+          type: integer
+          description: Quantidade de cupons disponíveis
+          example: 100
+        validade:
+          type: string
+          format: date
+          description: Data de validade do cupom (YYYY-MM-DD)
+          example: "2024-12-25"
+        valor_desc:
+          type: integer
+          description: Valor do desconto em reais
+          example: 30
+
+    CouponResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único do cupom
+          example: 1
+        nome:
+          type: string
+          example: "NATAL2024"
+        quantidade:
+          type: integer
+          example: 100
+        validade:
+          type: string
+          format: date-time
+          example: "2024-12-25T00:00:00.000Z"
+        valor_desc:
+          type: integer
+          example: 30

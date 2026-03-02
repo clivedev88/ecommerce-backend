@@ -11,8 +11,13 @@ class CouponService {
           nome,
           quantidade: parseInt(quantidade),
           validade: new Date(validade),
+<<<<<<< HEAD
           valor_desc: parseInt(valor_desc)
         }
+=======
+          valor_desc: parseInt(valor_desc),
+        },
+>>>>>>> 1c84707 (:books:: Documentação modular)
       });
       
       return {
@@ -20,16 +25,22 @@ class CouponService {
         dados: serialize(coupon)
       };
     } catch (error) {
+<<<<<<< HEAD
       return {
         sucesso: false,
         erro: error.message
       };
+=======
+      console.error('Erro ao criar cupom:', error);
+      throw new Error(`Erro ao criar cupom: ${error.message}`);
+>>>>>>> 1c84707 (:books:: Documentação modular)
     }
   }
 
   static async findAll() {
     try {
       const coupons = await prisma.cupons.findMany({
+<<<<<<< HEAD
         orderBy: { validade: 'asc' }
       });
       
@@ -42,6 +53,16 @@ class CouponService {
         sucesso: false,
         erro: error.message
       };
+=======
+        orderBy: {
+          id: 'desc'
+        }
+      });
+      return coupons;
+    } catch (error) {
+      console.error('Erro ao listar cupons:', error);
+      throw new Error(`Erro ao listar cupons: ${error.message}`);
+>>>>>>> 1c84707 (:books:: Documentação modular)
     }
   }
 
@@ -64,6 +85,7 @@ class CouponService {
         dados: serialize(coupon)
       };
     } catch (error) {
+<<<<<<< HEAD
       return {
         sucesso: false,
         erro: error.message
@@ -173,6 +195,10 @@ class CouponService {
         valido: false,
         erro: error.message
       };
+=======
+      console.error('Erro ao buscar cupom:', error);
+      throw new Error(`Erro ao buscar cupom: ${error.message}`);
+>>>>>>> 1c84707 (:books:: Documentação modular)
     }
   }
 }

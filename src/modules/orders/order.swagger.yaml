@@ -1,0 +1,135 @@
+paths:
+  /orders:
+    post:
+      tags:
+        - Orders
+      summary: Criar novo pedido
+      description: |
+        Cria um novo pedido com validação de estoque.
+        
+        **Validações aplicadas:**
+        - Items obrigatórios e não vazios
+        - ProductId e quantity devem ser números
+        - Quantity deve ser maior que zero
+        - Produtos não podem estar duplicados
+        - Produto deve existir
+        - Estoque deve ser suficiente
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateInput'
+            example:
+              items:
+                - productId: 1
+                  quantity: 2
+                - productId: 2
+                  quantity: 1
+      responses:
+        '201':
+          description: Pedido criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Pedido criado com sucesso"
+        '400':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                itemsObrigatorios:
+                  summary: Items obrigatórios
+                  value:
+                    success: false
+                    message: "Items são obrigatórios para validar estoque"
+                    timestamp: "2024-01-15T10:30:00.000Z"
+                    path: "/api/orders"
+                quantityInvalida:
+                  summary: Quantity inválida
+                  value:
+                    success: false
+                    message: "quantity deve ser maior que zero"
+                    timestamp: "2024-01-15T10:30:00.000Z"
+                    path: "/api/orders"
+                produtoDuplicado:
+                  summary: Produto duplicado
+                  value:
+                    success: false
+                    message: "Produto duplicado no pedido"
+                    timestamp: "2024-01-15T10:30:00.000Z"
+                    path: "/api/orders"
+                estoqueInsuficiente:
+                  summary: Estoque insuficiente
+                  value:
+                    success: false
+                    message: "Estoque insuficiente para Produto A"
+                    timestamp: "2024-01-15T10:30:00.000Z"
+                    path: "/api/orders"
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                message: "Produto com id 999 não encontrado"
+                timestamp: "2024-01-15T10:30:00.000Z"
+                path: "/api/orders"
+        '500':
+          description: Erro interno
+
+components:
+  schemas:
+    OrderCreateInput:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          minItems: 1
+          description: Lista de itens do pedido
+          items:
+            type: object
+            required:
+              - productId
+              - quantity
+            properties:
+              productId:
+                type: integer
+                description: ID do produto
+                example: 1
+              quantity:
+                type: integer
+                minimum: 1
+                description: Quantidade do produto
+                example: 2
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Mensagem de erro"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00.000Z"
+        path:
+          type: string
+          example: "/api/orders"
