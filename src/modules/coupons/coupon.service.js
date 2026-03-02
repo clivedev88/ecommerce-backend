@@ -11,8 +11,8 @@ class CouponService {
           nome,
           quantidade: parseInt(quantidade),
           validade: new Date(validade),
-          valor_desc: parseInt(valor_desc)
-        }
+          valor_desc: parseInt(valor_desc),
+        },
       });
       
       return {
@@ -20,6 +20,7 @@ class CouponService {
         dados: serialize(coupon)
       };
     } catch (error) {
+      console.error('Erro ao criar cupom:', error);
       return {
         sucesso: false,
         erro: error.message
@@ -38,6 +39,7 @@ class CouponService {
         dados: serialize(coupons)
       };
     } catch (error) {
+      console.error('Erro ao listar cupons:', error);
       return {
         sucesso: false,
         erro: error.message
@@ -64,6 +66,7 @@ class CouponService {
         dados: serialize(coupon)
       };
     } catch (error) {
+      console.error('Erro ao buscar cupom:', error);
       return {
         sucesso: false,
         erro: error.message
@@ -101,6 +104,7 @@ class CouponService {
         dados: serialize(coupon)
       };
     } catch (error) {
+      console.error('Erro ao atualizar cupom:', error);
       return {
         sucesso: false,
         erro: error.message
@@ -130,6 +134,7 @@ class CouponService {
         mensagem: "Cupom deletado com sucesso"
       };
     } catch (error) {
+      console.error('Erro ao deletar cupom:', error);
       return {
         sucesso: false,
         erro: error.message
@@ -169,6 +174,7 @@ class CouponService {
         dados: serialize(cupom)
       };
     } catch (error) {
+      console.error('Erro ao validar cupom:', error);
       return {
         valido: false,
         erro: error.message

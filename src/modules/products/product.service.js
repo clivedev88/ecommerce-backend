@@ -10,8 +10,8 @@ class ProductService {
           nome: data.nome,
           valor: data.valor,
           descricao: data.descricao,
-          desconto: data.desconto || 0,
-          estoque: parseInt(data.estoque),
+          desconto: data.desconto ? BigInt(data.desconto) : BigInt(0),
+          estoque: BigInt(data.estoque),
           categoria_id: parseInt(data.categoria_id),
           tamanhos: data.tamanhos || "[]",
           cores: data.cores || "[]",
@@ -27,6 +27,7 @@ class ProductService {
         dados: serialize(product)
       };
     } catch (error) {
+      console.error('Erro ao criar produto:', error);
       return {
         sucesso: false,
         erro: "Erro ao criar produto: " + error.message
@@ -40,7 +41,16 @@ class ProductService {
         include: {
           categoria: true,
           produto_imagens: true,
-          avaliacoes: true,
+          avaliacoes: {
+            include: {
+              usuarios: {
+                select: {
+                  id: true,
+                  nome: true,
+                }
+              }
+            }
+          },
         },
         orderBy: { id: 'desc' }
       });
@@ -50,6 +60,7 @@ class ProductService {
         dados: serialize(products)
       };
     } catch (error) {
+      console.error('Erro ao listar produtos:', error);
       return {
         sucesso: false,
         erro: "Erro ao listar produtos: " + error.message
@@ -64,7 +75,16 @@ class ProductService {
         include: {
           categoria: true,
           produto_imagens: true,
-          avaliacoes: true,
+          avaliacoes: {
+            include: {
+              usuarios: {
+                select: {
+                  id: true,
+                  nome: true,
+                }
+              }
+            }
+          },
         },
       });
 
@@ -80,6 +100,7 @@ class ProductService {
         dados: serialize(product)
       };
     } catch (error) {
+      console.error('Erro ao buscar produto:', error);
       return {
         sucesso: false,
         erro: "Erro ao buscar produto: " + error.message
