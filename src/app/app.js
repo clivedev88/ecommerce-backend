@@ -3,7 +3,6 @@ const cors = require("cors");
 
 const routes = require("./routes");
 const errorMiddleware = require("../shared/middlewares/error.middleware");
-const produtoTamanhosRouter = require("../modules/products/produto.routes");
 
 const { swaggerUi, swaggerDocument, swaggerOptions } = require("../config/swagger");
 
@@ -18,6 +17,5 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument, swaggerOp
 app.use(errorMiddleware);
 
 app.use("/api", routes);
-app.use("/api/produtos/tamanhos", produtoTamanhosRouter);
 
 module.exports = app;

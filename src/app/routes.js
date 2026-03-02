@@ -20,5 +20,4 @@ router.use("/produtos", produtoRoutes);
 router.use("/categories", categoryRoutes);
 router.use("/reviews", reviewRoutes);
 
-
 module.exports = router;
