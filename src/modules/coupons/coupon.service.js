@@ -1,60 +1,179 @@
 const prisma = require("../../database/prisma");
+const serialize = require("../../shared/utils/serialize");
 
 class CouponService {
   static async create(data) {
-    const { nome, quantidade, validade, valor_desc } = data;
-    return await prisma.cupons.create({
-      data: {
-        nome,
-        quantidade: parseInt(quantidade),
-        validade: new Date(validade),
-        valor_desc: parseInt(valor_desc)
-      }
-    });
+    try {
+      const { nome, quantidade, validade, valor_desc } = data;
+      
+      const coupon = await prisma.cupons.create({
+        data: {
+          nome,
+          quantidade: parseInt(quantidade),
+          validade: new Date(validade),
+          valor_desc: parseInt(valor_desc)
+        }
+      });
+      
+      return {
+        sucesso: true,
+        dados: serialize(coupon)
+      };
+    } catch (error) {
+      return {
+        sucesso: false,
+        erro: error.message
+      };
+    }
   }
 
   static async findAll() {
-    return await prisma.cupons.findMany({
-      orderBy: { validade: 'asc' }
-    });
+    try {
+      const coupons = await prisma.cupons.findMany({
+        orderBy: { validade: 'asc' }
+      });
+      
+      return {
+        sucesso: true,
+        dados: serialize(coupons)
+      };
+    } catch (error) {
+      return {
+        sucesso: false,
+        erro: error.message
+      };
+    }
   }
 
   static async findById(id) {
-    return await prisma.cupons.findUnique({
-      where: { id: parseInt(id) },
-      include: { pedidos: true }
-    });
+    try {
+      const coupon = await prisma.cupons.findUnique({
+        where: { id: parseInt(id) },
+        include: { pedidos: true }
+      });
+      
+      if (!coupon) {
+        return {
+          sucesso: false,
+          erro: "Cupom não encontrado"
+        };
+      }
+      
+      return {
+        sucesso: true,
+        dados: serialize(coupon)
+      };
+    } catch (error) {
+      return {
+        sucesso: false,
+        erro: error.message
+      };
+    }
   }
 
   static async update(id, data) {
-    const { nome, quantidade, validade, valor_desc } = data;
-    return await prisma.cupons.update({
-      where: { id: parseInt(id) },
-      data: {
-        nome,
-        quantidade: parseInt(quantidade),
-        validade: new Date(validade),
-        valor_desc: parseInt(valor_desc)
+    try {
+      const { nome, quantidade, validade, valor_desc } = data;
+      
+      const existe = await prisma.cupons.findUnique({
+        where: { id: parseInt(id) }
+      });
+      
+      if (!existe) {
+        return {
+          sucesso: false,
+          erro: "Cupom não encontrado"
+        };
       }
-    });
+      
+      const coupon = await prisma.cupons.update({
+        where: { id: parseInt(id) },
+        data: {
+          nome,
+          quantidade: parseInt(quantidade),
+          validade: new Date(validade),
+          valor_desc: parseInt(valor_desc)
+        }
+      });
+      
+      return {
+        sucesso: true,
+        dados: serialize(coupon)
+      };
+    } catch (error) {
+      return {
+        sucesso: false,
+        erro: error.message
+      };
+    }
   }
 
   static async delete(id) {
-    return await prisma.cupons.delete({
-      where: { id: parseInt(id) }
-    });
+    try {
+      const existe = await prisma.cupons.findUnique({
+        where: { id: parseInt(id) }
+      });
+      
+      if (!existe) {
+        return {
+          sucesso: false,
+          erro: "Cupom não encontrado"
+        };
+      }
+      
+      await prisma.cupons.delete({
+        where: { id: parseInt(id) }
+      });
+      
+      return {
+        sucesso: true,
+        mensagem: "Cupom deletado com sucesso"
+      };
+    } catch (error) {
+      return {
+        sucesso: false,
+        erro: error.message
+      };
+    }
   }
 
   static async validarCupom(id) {
-    const cupom = await prisma.cupons.findUnique({
-      where: { id: parseInt(id) }
-    });
+    try {
+      const cupom = await prisma.cupons.findUnique({
+        where: { id: parseInt(id) }
+      });
 
-    if (!cupom) throw new Error("Cupom não encontrado");
-    if (cupom.quantidade <= 0) throw new Error("Cupom esgotado");
-    if (new Date(cupom.validade) < new Date()) throw new Error("Cupom expirado");
+      if (!cupom) {
+        return {
+          valido: false,
+          erro: "Cupom não encontrado"
+        };
+      }
+      
+      if (cupom.quantidade <= 0) {
+        return {
+          valido: false,
+          erro: "Cupom esgotado"
+        };
+      }
+      
+      if (new Date(cupom.validade) < new Date()) {
+        return {
+          valido: false,
+          erro: "Cupom expirado"
+        };
+      }
 
-    return cupom;
+      return {
+        valido: true,
+        dados: serialize(cupom)
+      };
+    } catch (error) {
+      return {
+        valido: false,
+        erro: error.message
+      };
+    }
   }
 }
 

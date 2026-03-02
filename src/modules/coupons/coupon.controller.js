@@ -9,8 +9,13 @@ class CouponController {
         return res.status(400).json({ erro: "Todos os campos são obrigatórios" });
       }
 
-      const coupon = await CouponService.create(req.body);
-      res.status(201).json(coupon);
+      const resultado = await CouponService.create(req.body);
+      
+      if (!resultado.sucesso) {
+        return res.status(400).json({ erro: resultado.erro });
+      }
+      
+      res.status(201).json(resultado.dados);
     } catch (error) {
       res.status(400).json({ erro: error.message });
     }
@@ -18,8 +23,13 @@ class CouponController {
 
   static async findAll(req, res) {
     try {
-      const coupons = await CouponService.findAll();
-      res.json(coupons);
+      const resultado = await CouponService.findAll();
+      
+      if (!resultado.sucesso) {
+        return res.status(400).json({ erro: resultado.erro });
+      }
+      
+      res.json(resultado.dados);
     } catch (error) {
       res.status(400).json({ erro: error.message });
     }
@@ -28,11 +38,13 @@ class CouponController {
   static async findById(req, res) {
     try {
       const { id } = req.params;
-      const coupon = await CouponService.findById(id);
-      if (!coupon) {
-        return res.status(404).json({ erro: "Cupom não encontrado" });
+      const resultado = await CouponService.findById(id);
+      
+      if (!resultado.sucesso) {
+        return res.status(404).json({ erro: resultado.erro });
       }
-      res.json(coupon);
+      
+      res.json(resultado.dados);
     } catch (error) {
       res.status(400).json({ erro: error.message });
     }
@@ -41,8 +53,13 @@ class CouponController {
   static async update(req, res) {
     try {
       const { id } = req.params;
-      const coupon = await CouponService.update(id, req.body);
-      res.json(coupon);
+      const resultado = await CouponService.update(id, req.body);
+      
+      if (!resultado.sucesso) {
+        return res.status(404).json({ erro: resultado.erro });
+      }
+      
+      res.json(resultado.dados);
     } catch (error) {
       res.status(400).json({ erro: error.message });
     }
@@ -51,8 +68,13 @@ class CouponController {
   static async delete(req, res) {
     try {
       const { id } = req.params;
-      await CouponService.delete(id);
-      res.status(204).send();
+      const resultado = await CouponService.delete(id);
+      
+      if (!resultado.sucesso) {
+        return res.status(404).json({ erro: resultado.erro });
+      }
+      
+      res.json({ mensagem: resultado.mensagem });
     } catch (error) {
       res.status(400).json({ erro: error.message });
     }
@@ -61,10 +83,24 @@ class CouponController {
   static async validar(req, res) {
     try {
       const { id } = req.params;
-      const cupom = await CouponService.validarCupom(id);
-      res.json({ valido: true, cupom });
+      const resultado = await CouponService.validarCupom(id);
+      
+      if (!resultado.valido) {
+        return res.status(400).json({ 
+          valido: false, 
+          erro: resultado.erro 
+        });
+      }
+      
+      res.json({ 
+        valido: true, 
+        cupom: resultado.dados 
+      });
     } catch (error) {
-      res.status(400).json({ valido: false, erro: error.message });
+      res.status(400).json({ 
+        valido: false, 
+        erro: error.message 
+      });
     }
   }
 }
