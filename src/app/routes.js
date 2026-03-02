@@ -7,14 +7,15 @@ const productRoutes = require("../modules/products/product.routes");
 const userRoutes = require("../modules/users/users.routes");
 const produtoRoutes = require("../modules/products/produto.routes")
 
+
 const router = Router();
 
-// Base
 router.use("/health", healthRoutes);
 router.use("/orders", orderRoutes);
 router.use("/coupons", couponRoutes);
 router.use("/products", productRoutes);
 router.use("/users", userRoutes);
 router.use("/produtos", produtoRoutes);
+
 
 module.exports = router;
