@@ -2,22 +2,13 @@ const prisma = require("../../database/prisma");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const transporter = require("../../shared/utils/mail.util");
+const AppError = require("../../shared/errors/AppError");
 
 class UsersService {
   async create(data) {
-    const { cpf, email, senha } = data;
+    const { senha } = data;
 
-    if (cpf) {
-      const cpfExists = await prisma.usuarios.findUnique({ where: { cpf } });
-      if (cpfExists) throw new Error("CPF já cadastrado");
-    }
-
-    if (email) {
-      const emailExists = await prisma.usuarios.findUnique({
-        where: { email },
-      });
-      if (emailExists) throw new Error("Email já cadastrado");
-    }
+    if (!senha) throw new AppError("Senha é obrigatória", 400);
 
     const hashedPassword = await bcrypt.hash(senha, 10);
 
@@ -45,13 +36,19 @@ class UsersService {
   }
 
   async confirmEmail(token) {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    let decoded;
+
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      throw new AppError("Token inválido ou expirado", 400);
+    }
 
     const user = await this.findById(decoded.id);
 
-    if (!user) throw new Error("Usuário não encontrado");
+    if (!user) throw new AppError("Usuário não encontrado", 404);
 
-    if (user.emailVerificado) throw new Error("Email já confirmado");
+    if (user.emailVerificado) throw new AppError("Email já confirmado", 400);
 
     return await this.update(user.id, { emailVerificado: true });
   }
@@ -64,34 +61,17 @@ class UsersService {
   }
 
   async findById(id) {
-    return await prisma.usuarios.findUnique({
+    const user = await prisma.usuarios.findUnique({
       where: { id },
       omit: { senha: true },
     });
+
+    if (!user) throw new AppError("Usuário não encontrado", 404);
+
+    return user;
   }
 
   async update(id, data) {
-    const userExists = await this.findById(id);
-    if (!userExists) {
-      throw new Error("Usuário não encontrado");
-    }
-
-    if (data.email) {
-      const emailExists = await prisma.usuarios.findUnique({
-        where: { email: data.email },
-      });
-      if (emailExists && emailExists.id !== id)
-        throw new Error("Email já cadastrado");
-    }
-
-    if (data.cpf) {
-      const cpfExists = await prisma.usuarios.findUnique({
-        where: { cpf: data.cpf },
-      });
-      if (cpfExists && cpfExists.id !== id)
-        throw new Error("CPF já cadastrado");
-    }
-
     if (data.senha) {
       data.senha = await bcrypt.hash(data.senha, 10);
     }
@@ -104,11 +84,6 @@ class UsersService {
   }
 
   async delete(id) {
-    const userExists = await this.findById(id);
-    if (!userExists) {
-      throw new Error("Usuário não encontrado");
-    }
-
     return await prisma.usuarios.delete({ where: { id } });
   }
 }

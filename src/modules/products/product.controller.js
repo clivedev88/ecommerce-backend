@@ -1,3 +1,4 @@
+const AppError = require("../../shared/errors/AppError");
 const ProductService = require("./product.service");
 
 // Converter BigInt para Number no JSON
@@ -15,90 +16,69 @@ const serializeProduct = (product) => {
 };
 
 class ProductController {
-  static async create(req, res) {
+  static async create(req, res, next) {
     try {
-      const newProduct = await ProductService.createProduct(req.body);
-      res.status(201).json(serializeProduct(newProduct));
+      const resultado = await ProductService.create(req.body);
+      return res.status(201).json(resultado);
     } catch (error) {
-      res.status(500).json({ erro: error.message });
+      next(error);
     }
   }
 
-  static async getAll(req, res) {
+  static async getAll(req, res, next) {
     try {
-      const products = await ProductService.getAllProducts();
-      const serialized = products.map(serializeProduct);
-      res.status(200).json(serialized);
+      const resultado = await ProductService.findAll();
+      return res.status(200).json(resultado);
     } catch (error) {
-      res.status(500).json({ erro: error.message });
+      next(error);
     }
   }
 
-  static async getById(req, res) {
+  static async getById(req, res, next) {
     try {
       const { id } = req.params;
-      const product = await ProductService.getProductById(id);
-
-      if (!product) {
-        return res.status(404).json({ erro: "Produto não encontrado" });
-      }
-
-      res.status(200).json(serializeProduct(product));
+      const resultado = await ProductService.findById(id);
+      return res.status(200).json(resultado);
     } catch (error) {
-      res.status(500).json({ erro: error.message });
+      next(error);
     }
   }
 
-  static async update(req, res) {
+  static async update(req, res, next) {
     try {
       const { id } = req.params;
-      const updatedProduct = await ProductService.updateProduct(id, req.body);
-
-      if (!updatedProduct) {
-        return res.status(404).json({ erro: "Produto não encontrado" });
-      }
-
-      res.status(200).json(serializeProduct(updatedProduct));
+      const resultado = await ProductService.update(id, req.body);
+      return res.status(200).json(resultado);
     } catch (error) {
-      res.status(500).json({ erro: error.message });
+      next(error);
     }
   }
 
-  static async delete(req, res) {
+  static async delete(req, res, next) {
     try {
       const { id } = req.params;
-      const deleted = await ProductService.deleteProduct(id);
-
-      if (!deleted) {
-        return res.status(404).json({ erro: "Produto não encontrado" });
-      }
+      await ProductService.delete(id);
 
       res.status(200).json({ mensagem: "Produto deletado com sucesso" });
     } catch (error) {
-      res.status(500).json({ erro: error.message });
+      next(error);
     }
   }
 
-  static async atualizarTamanhos(req, res) {
+  static async atualizarTamanhos(req, res, next) {
     try {
       const { id } = req.params;
       const { tamanhos } = req.body;
 
       if (!Array.isArray(tamanhos)) {
-        return res.status(400).json({ 
-          erro: "O campo 'tamanhos' deve ser um array" 
-        });
+        throw new AppError("O campo 'tamanhos' deve ser um array", 400);
       }
 
       const updated = await ProductService.atualizarTamanhos(id, tamanhos);
 
-      if (!updated) {
-        return res.status(400).json({ erro: "Erro ao atualizar tamanhos" });
-      }
-
-      res.status(200).json(updated);
+      res.status(200).json(resultado);
     } catch (error) {
-      res.status(500).json({ erro: error.message });
+      next(error);
     }
   }
 }

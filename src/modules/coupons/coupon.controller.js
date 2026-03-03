@@ -1,106 +1,76 @@
+const AppError = require("../../shared/errors/AppError");
 const CouponService = require("./coupon.service");
 
 class CouponController {
-  static async create(req, res) {
+  static async create(req, res, next) {
     try {
       const { nome, quantidade, validade, valor_desc } = req.body;
-      
+
       if (!nome || !quantidade || !validade || !valor_desc) {
-        return res.status(400).json({ erro: "Todos os campos são obrigatórios" });
+        throw new AppError("Todos os campos são obrigatórios", 400);
       }
 
       const resultado = await CouponService.create(req.body);
-      
-      if (!resultado.sucesso) {
-        return res.status(400).json({ erro: resultado.erro });
-      }
-      
-      res.status(201).json(resultado.dados);
+
+      res.status(201).json(resultado);
     } catch (error) {
-      res.status(400).json({ erro: error.message });
+      next(error);
     }
   }
 
-  static async findAll(req, res) {
+  static async findAll(req, res, next) {
     try {
       const resultado = await CouponService.findAll();
-      
-      if (!resultado.sucesso) {
-        return res.status(400).json({ erro: resultado.erro });
-      }
-      
-      res.json(resultado.dados);
+
+      res.json(resultado);
     } catch (error) {
-      res.status(400).json({ erro: error.message });
+      next(error);
     }
   }
 
-  static async findById(req, res) {
+  static async findById(req, res, next) {
     try {
       const { id } = req.params;
       const resultado = await CouponService.findById(id);
-      
-      if (!resultado.sucesso) {
-        return res.status(404).json({ erro: resultado.erro });
-      }
-      
-      res.json(resultado.dados);
+
+      res.json(resultado);
     } catch (error) {
-      res.status(400).json({ erro: error.message });
+      next(error);
     }
   }
 
-  static async update(req, res) {
+  static async update(req, res, next) {
     try {
       const { id } = req.params;
       const resultado = await CouponService.update(id, req.body);
-      
-      if (!resultado.sucesso) {
-        return res.status(404).json({ erro: resultado.erro });
-      }
-      
-      res.json(resultado.dados);
+
+      res.json(resultado);
     } catch (error) {
-      res.status(400).json({ erro: error.message });
+      next(error);
     }
   }
 
-  static async delete(req, res) {
+  static async delete(req, res, next) {
     try {
       const { id } = req.params;
       const resultado = await CouponService.delete(id);
-      
-      if (!resultado.sucesso) {
-        return res.status(404).json({ erro: resultado.erro });
-      }
-      
+
       res.json({ mensagem: resultado.mensagem });
     } catch (error) {
-      res.status(400).json({ erro: error.message });
+      next(error);
     }
   }
 
-  static async validar(req, res) {
+  static async validar(req, res, next) {
     try {
       const { id } = req.params;
       const resultado = await CouponService.validarCupom(id);
-      
-      if (!resultado.valido) {
-        return res.status(400).json({ 
-          valido: false, 
-          erro: resultado.erro 
-        });
-      }
-      
-      res.json({ 
-        valido: true, 
-        cupom: resultado.dados 
+
+      res.json({
+        cupom: resultado,
       });
     } catch (error) {
-      res.status(400).json({ 
-        valido: false, 
-        erro: error.message 
-      });
+      next(error);
     }
   }
 }
