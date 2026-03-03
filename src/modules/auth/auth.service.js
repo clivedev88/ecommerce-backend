@@ -1,4 +1,3 @@
-// src/modules/auth/auth.service.js
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const prisma = require("../../database/prisma");
@@ -20,7 +19,6 @@ async function login(email, senha) {
       throw new Error("Email não encontrado");
     }
 
-    // 🔴 VERIFICAÇÃO CRÍTICA
     console.log('Senha fornecida:', senha ? 'Presente' : 'Ausente');
     console.log('Senha no banco:', user.senha ? 'Presente' : 'Ausente');
     
