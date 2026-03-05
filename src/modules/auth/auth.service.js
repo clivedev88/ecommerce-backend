@@ -1,21 +1,41 @@
-const bcrypt = require("bcryptjs")
-
-const jwt = require("jsonwebtoken")
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const secret_key = 'Janaina';
 
-const prisma = require('../../database/prisma')
+const prisma = require('../../database/prisma');
 
-exports.login = (username, password) => {
-    const user = prisma.user.findUnique({
-    where: {
-        username: username
+async function login(email, senha) {
+    try {
+        const user = await prisma.usuarios.findUnique({
+            where: { email: email }
+        });
+        console.log(email);
+
+        if (!user) {
+            throw new Error("email inválido!");
+        }
+
+        const passwordIsValid = bcrypt.compareSync(senha, user.senha);
+
+        if (!passwordIsValid) {
+            throw new Error("senha inválida!");
+        }
+
+        const token = jwt.sign(
+            { id: user.id, email: user.email },
+            secret_key,
+            { expiresIn: "3h" }
+        );
+
+        return {
+            message: "login bem sucedido",
+            user,
+            token: token
+        };
+    } catch (error) {
+        throw new Error(error.message);
     }
-    })
-
-    const passwordIsvalid = bcrypt.compareSync
-
-    return jwt.sign({id: user.id, name: user.name}, secret_key,{expiresIn:"3h"})
-
 }
 
+module.exports = login;
