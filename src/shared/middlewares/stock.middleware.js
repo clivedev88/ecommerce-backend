@@ -1,72 +1,70 @@
-const AppError = require("../errors/AppError");
+const { PrismaClient } = require("@prisma/client");
 
-const mockProducts = [
-  { id: 1, name: "Produto A", stock: 10 },
-  { id: 2, name: "Produto B", stock: 5 },
-  { id: 3, name: "Produto C", stock: 20 },
-];
+const prisma = new PrismaClient();
 
-function validateStock(req, res, next) {
+async function validateStock(req, _res, next) {
   try {
     const { items } = req.body;
 
     if (!Array.isArray(items) || items.length === 0) {
-      const error = new AppError(
-        "Items são obrigatórios para validar estoque",
-        400,
-      );
+      const error = new Error("Items são obrigatórios");
       error.status = 400;
       return next(error);
     }
 
-    const seenProducts = new Set();
+    const ids = [];
+    const seen = new Set();
 
     for (const item of items) {
-      const { productId, quantity } = item;
-
-      if (typeof productId !== "number" || typeof quantity !== "number") {
-        const error = new AppError(
-          "productId e quantity devem ser números",
-          400,
-        );
+      if (
+        typeof item.productId !== "number" ||
+        typeof item.quantity !== "number"
+      ) {
+        const error = new Error("productId e quantity devem ser números");
+        error.status = 400;
         return next(error);
       }
 
-      if (quantity <= 0) {
-        const error = new AppError("quantity deve ser maior que zero", 400);
+      if (item.quantity <= 0) {
+        const error = new Error("quantity deve ser maior que zero");
+        error.status = 400;
         return next(error);
       }
 
-      if (seenProducts.has(productId)) {
-        const error = new AppError("Produto duplicado no pedido", 400);
+      if (seen.has(item.productId)) {
+        const error = new Error("Produto duplicado no pedido");
+        error.status = 400;
         return next(error);
       }
 
-      seenProducts.add(productId);
+      seen.add(item.productId);
+      ids.push(item.productId);
+    }
 
-      const product = mockProducts.find((p) => p.id === productId);
+    const produtos = await prisma.produtos.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, nome: true, estoque: true },
+    });
 
-      if (!product) {
-        const error = new AppError(
-          `Produto com id ${productId} não encontrado`,
-          404,
-        );
+    if (produtos.length !== ids.length) {
+      const error = new Error("Produto não encontrado");
+      error.status = 404;
+      return next(error);
+    }
 
-        return next(error);
-      }
+    for (const item of items) {
+      const produto = produtos.find((p) => p.id === item.productId);
 
-      if (product.stock < quantity) {
-        const error = new AppError(
-          `Estoque insuficiente para ${product.name}`,
-          400,
-        );
+      if (produto.estoque < BigInt(item.quantity)) {
+        const error = new Error(`Estoque insuficiente para ${produto.nome}`);
+        error.status = 400;
         return next(error);
       }
     }
 
-    return next();
+    next();
   } catch (error) {
-    return next(error);
+    next(error);
   }
 }
 
