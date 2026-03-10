@@ -7,6 +7,8 @@ const productRoutes = require("../modules/products/product.routes");
 const userRoutes = require("../modules/users/users.routes");
 const categoryRoutes = require("../modules/categories/category.routes");
 const reviewRoutes = require("../modules/reviews/review.routes");
+const applyCouponRoutes = require("../modules/coupons/associacoupon.routes");
+const validateProductRoutes = require("../modules/products/validateProduct.routes");
 
 const authRoutes = require("../modules/auth/auth.routes");
 const { rotaProtegida } = require("../shared/middlewares/token.middleware");
@@ -22,5 +24,7 @@ router.use("/reviews", reviewRoutes);
 
 router.use("/auth", authRoutes);
 router.use("/categories", categoryRoutes);
+router.use("/coupons", applyCouponRoutes);
+router.use("/products", validateProductRoutes);
 
 module.exports = router;
