@@ -20,8 +20,8 @@ router.use("/orders", rotaProtegida, orderRoutes);
 router.use("/coupons", couponRoutes);
 router.use("/products", productRoutes);
 router.use("/users", userRoutes);
+router.use("/categories", categoryRoutes);
 router.use("/reviews", reviewRoutes);
-
 router.use("/auth", authRoutes);
 router.use("/categories", categoryRoutes);
 router.use("/coupons", applyCouponRoutes);

@@ -1,4 +1,5 @@
 const { Prisma } = require("@prisma/client");
+const jwt = require("jsonwebtoken");
 const AppError = require("../errors/AppError");
 
 function errorMiddleware(err, req, res, next) {
@@ -39,6 +40,16 @@ function errorMiddleware(err, req, res, next) {
         status = 400;
         message = "Erro de validação no banco";
     }
+  }
+
+  if (err instanceof jwt.JsonWebTokenError) {
+    status = 401;
+    message = "Token inválido";
+  }
+
+  if (err instanceof jwt.TokenExpiredError) {
+    status = 401;
+    message = "Token expirado";
   }
 
   if (err?.type === "entity.parse.failed") {
