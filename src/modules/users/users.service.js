@@ -21,16 +21,20 @@ class UsersService {
       expiresIn: "24h",
     });
 
-    await transporter.sendMail({
-      from: `"3D Tech" <${process.env.EMAIL_USER}>`,
-      to: user.email,
-      subject: "Confirme seu cadastro",
-      html: `
+    try {
+      await transporter.sendMail({
+        from: `"3D Tech" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: "Confirme seu cadastro",
+        html: `
       <h2>Bem-vindo!</h2>
       <p>Clique no link para confirmar seu email:</p>
-      <a href=${process.env.APP_URL}/api/users/confirm?token=${token}>Confirmar Email</a>
+      <a href="${process.env.APP_URL}/api/users/confirm?token=${token}">Confirmar Email</a>
       <p>O link é válido por 24 horas.</p>`,
-    });
+      });
+    } catch (error) {
+      console.error("Erro ao enviar email:", error);
+    }
 
     return user;
   }
