@@ -42,9 +42,16 @@ class UsersService {
       { expiresIn: "24h" }
     );
 
+    let emailEnviado = false; 
+    // Porque false ? 
+    // O email é enviado de forma assíncrona, e queremos garantir que o processo de criação 
+    // do usuário não falhe mesmo que haja um problema no envio do email. 
+    // Assim, retornamos o usuário criado independentemente do resultado do envio do email,
+    //  e podemos informar ao cliente se o email foi enviado ou não.
+    // Tentar enviar o email, mas não falhar se houver um erro
     try {
       
-      const emailSent = await sendMail({
+      await sendMail({
         from: `"3D Tech" <${process.env.EMAIL_USER}>`,
         to: user.email,
         subject: "Confirme seu cadastro",
@@ -56,15 +63,17 @@ class UsersService {
       });
 
       console.log(`Email de confirmação enviado para ${user.email}`);
+      emailEnviado = true;
       
     //   if (!emailSent) {
     //   console.warn(`Usuário ${user.id} criado, mas email não enviado`);
     // }
     } catch (error) {
       console.error(`Usuário ${user.id} criado, mas email não enviado:`, error.message);
+      emailEnviado = false;
     }
 
-    return user;
+    return { ...user, emailEnviado };
   }
 
   async confirmEmail(token) {
@@ -110,14 +119,21 @@ class UsersService {
   }
 
   async update(id, data) {
-    await this.findById(id);
+
+    const existingUser = await this.repository.findById(Number(id));
+    if (!existingUser) {
+      throw new AppError("Usuário não encontrado", 404);
+    }
+    
+    // await this.findById(id);
+
     if (data.senha) {
       data.senha = await bcrypt.hash(data.senha, 10);
     }
 
-    if(data.email) {
-      const existingUser = await this.repository.findByEmail(data.email);
-      if (existingUser && existingUser.id !== Number(id)) {
+    if(data.email && data.email !== existingUser.email) {
+      const userWithEmail = await this.repository.findByEmail(data.email);
+      if (userWithEmail) {
         throw new AppError("Email já cadastrado", 400);
       }
     }
@@ -133,7 +149,12 @@ class UsersService {
 
   async delete(id) {
     // return await prisma.usuarios.delete({ where: { id } });
-    await this.findById(id);
+    const user = await this.repository.findById(Number(id));
+
+    if(!user) {
+      throw new AppError("Usuário não encontrado", 404);
+    }
+
     await this.repository.delete(Number(id));
     return { deleted: true };
   }

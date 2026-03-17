@@ -9,19 +9,28 @@ class UsersController {
   async create(req, res, next) {
     try {
       const user = await this.service.create(req.body);
-
-      if (user) {
+      const emailEnviado = req.emailEnviado;
+      
+      if(!emailEnviado) {
         return res.status(201).json({
-        data: user,
-        tipo:"success",
-        message: "Usuário criado com sucesso",
-      });
+          tipo:"warning",
+          message: "Usuário criado, mas email de confirmação não enviado",
+          data: user,
+        });
       }
 
+      // if (user) {
+      //   return res.status(201).json({
+      //   data: user,
+      //   tipo:"success",
+      //   message: "Usuário criado com sucesso",
+      // });
+      // }
+
       return res.status(200).json({
+        tipo:"success",
+        message: "Usuário criado com sucesso. Verifique seu email para confirmar o cadastro.",
         data: user,
-        tipo:"warning",
-        message: "Ocorreu algum problema ao criar o usuário",
       });
     } catch (error) {
       next(error);
@@ -39,16 +48,18 @@ class UsersController {
       }
 
       const result = await this.service.confirmEmail(token);
-      if (!result) {
-        return res.status(400).json({
-          tipo: "error",
-          message: "Token de confirmação inválido ou expirado",
-        });
-      }
+
+      // if (!result) {
+      //   return res.status(400).json({
+      //     tipo: "error",
+      //     message: "Token de confirmação inválido ou expirado",
+      //   });
+      // }
 
       return res.status(200).json({
         tipo: "success",
         message: "E-mail confirmado com sucesso",
+        data: result,
       });
     } catch (error) {
       next(error);
@@ -58,7 +69,15 @@ class UsersController {
   async getAll(_req, res, next) {
     try {
       const users = await this.service.findAll();
-      
+
+      if (!users || users.length === 0) {
+        return res.status(201).json({
+          tipo: "warning",
+          message: "Nenhum usuário encontrado",
+          data: []
+        });
+      }
+
       return res.status(200).json({
         tipo: "success",
         message: "Usuários encontrados com sucesso",
@@ -90,12 +109,13 @@ class UsersController {
 
       const updatedUser = await this.service.update(Number(id), req.body);
 
-      // if (!updatedUser) {
-      //   return res.status(400).json({
-      //     tipo: "error",
-      //     message: "Ocorreu algum problema ao atualizar o usuário",
-      //   });
-      // }
+      if (!updatedUser) {
+        return res.status(201).json({
+          tipo: "warning",
+          message: "Nenhuma alteração foi realizada",
+          // data: updatedUser
+        });
+      }
 
       return res.status(200).json({
         tipo: "success",
