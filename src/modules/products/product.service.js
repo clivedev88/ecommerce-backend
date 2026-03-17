@@ -1,11 +1,16 @@
-const prisma = require("../../database/prisma");
+// const prisma = require("../../database/prisma");
+const { de } = require("zod/locales");
 const AppError = require("../../shared/errors/AppError");
-const serialize = require("../../shared/utils/serialize");
+// const serialize = require("../../shared/utils/serialize");
+const ProductRepository = require("./product.repository");
 
 class ProductService {
+  constructor   () {
+    this.productRepository = new ProductRepository;
+  }
+
   static async create(data) {
-    const product = await prisma.produtos.create({
-      data: {
+    const product = await this.productRepository.create ({
         nome: data.nome,
         valor: data.valor,
         descricao: data.descricao,
@@ -18,201 +23,84 @@ class ProductService {
         largura: data.largura,
         comprimento: data.comprimento,
         peso: data.peso,
-      },
     });
 
-    return serialize(product);
+    return product;
   }
 
   static async findAll() {
-    const products = await prisma.produtos.findMany({
-      include: {
-        categoria: true,
-        produto_imagens: true,
-        avaliacoes: true,
-      },
-      orderBy: { id: "desc" },
-    });
+    const products = await this.productRepository.findAll({});
 
-    return serialize(products);
+    return products;
   }
 
   static async findById(id) {
-    const product = await prisma.produtos.findUnique({
-      where: { id: parseInt(id) },
-      include: {
-        categoria: true,
-        produto_imagens: true,
-        avaliacoes: true,
-      },
-    });
+    const product = await this.productRepository.findById(parseInt(id));
 
     if (!product) {
       throw new AppError("Produto não encontrado", 404);
     }
 
-    return serialize(product);
+    return product;
   }
 
   static async update(id, data) {
-    const existe = await prisma.produtos.findUnique({
-      where: { id: parseInt(id) },
-    });
+    await this.findById.update(id );
 
-    if (!existe) {
-      throw new AppError("Produto não encontrado", 404);
-    }
-
-    const product = await prisma.produtos.update({
-      where: { id: parseInt(id) },
-      data: {
-        nome: data.nome,
-        valor: data.valor,
-        descricao: data.descricao,
-        desconto: data.desconto,
-        estoque: data.estoque ? parseInt(data.estoque) : undefined,
-        categoria_id: data.categoria_id
-          ? parseInt(data.categoria_id)
-          : undefined,
-        tamanhos: data.tamanhos,
-        cores: data.cores,
-        altura: data.altura,
-        largura: data.largura,
-        comprimento: data.comprimento,
-        peso: data.peso,
-      },
-    });
-
-    return serialize(product);
+    const product = await this.productRepository.update(parseInt(id), data);
+        return product;
   }
 
   static async delete(id) {
-    const existe = await prisma.produtos.findUnique({
-      where: { id: parseInt(id) },
-    });
+    await this.findById(id);
+    await this.productRepository.delete(parseInt(id));
 
-    if (!existe) {
-      throw new AppError("Produto não encontrado", 404);
-    }
-
-    return await prisma.produtos.delete({
-      where: { id: parseInt(id) },
-    });
+    return {deleted: true};
   }
 
-  static async atualizarTamanhos(produtoId, tamanhosIds) {
-    const idFormatado = parseInt(produtoId);
+  async atualizarTamanhos(produtoId, tamanhosIds) {
+    await this.findById(produtoId);
 
-    if (isNaN(idFormatado)) {
-      throw new AppError("ID do produto inválido", 400);
-    }
-
-    if (!Array.isArray(tamanhosIds) || tamanhosIds.length === 0) {
-      throw new AppError("Envie um array válido de IDs de tamanhos", 400);
-    }
-
-    const produto = await prisma.produtos.findUnique({
-      where: { id: idFormatado },
-    });
-
-    if (!produto) {
-      throw new AppError("Produto não encontrado", 404);
-    }
-
-    const tamanhosExistentes = await prisma.tamanhos.findMany({
-      where: {
-        id: { in: tamanhosIds.map((id) => parseInt(id)) },
-      },
-    });
-
+    const tamanhosExistentes = await this.productRepository.findTamanhosByIds(tamanhosIds);
     if (tamanhosExistentes.length !== tamanhosIds.length) {
-      const idsEncontrados = tamanhosExistentes.map((t) => t.id);
-      const tamanhosFaltando = tamanhosIds.filter(
-        (id) => !idsEncontrados.includes(parseInt(id)),
-      );
-
-      throw new AppError(
-        `Tamanhos não existem: ${tamanhosFaltando.join(", ")}`,
-        400,
-      );
+      throw new AppError("Um ou mais tamanhos não existem", 400);
     }
 
-    const produtoAtualizado = await prisma.produtos.update({
-      where: { id: idFormatado },
-      data: {
-        tamanhos: JSON.stringify(tamanhosIds),
-      },
-    });
-
-    return serialize(produtoAtualizado);
+    return await this.productRepository.updateTamanhos(produtoId, tamanhosIds);
   }
 
-  static async atualizarCores(produtoId, coresIds) {
-  try {
-    const idFormatado = parseInt(produtoId);
+  async atualizarCores(produtoId, coresIds) {
+    await this.findById(produtoId);
 
-    if (isNaN(idFormatado)) {
-      return {
-        sucesso: false,
-        erro: "ID do produto inválido"
-      };
-    }
-
-    if (!Array.isArray(coresIds) || coresIds.length === 0) {
-      return {
-        sucesso: false,
-        erro: "Envie um array válido de IDs de cores"
-      };
-    }
-
-    const produto = await prisma.produtos.findUnique({
-      where: { id: idFormatado },
-    });
-
-    if (!produto) {
-      return {
-        sucesso: false,
-        erro: "Produto não encontrado"
-      };
-    }
-
-    const coresExistentes = await prisma.cores.findMany({
-      where: {
-        id: { in: coresIds.map(id => parseInt(id)) },
-      },
-    });
-
+    const coresExistentes = await this.productRepository.findCoresByIds(coresIds);
     if (coresExistentes.length !== coresIds.length) {
-      const idsEncontrados = coresExistentes.map(c => c.id);
-      const coresFaltando = coresIds.filter(
-        id => !idsEncontrados.includes(parseInt(id))
-      );
-      
-      return {
-        sucesso: false,
-        erro: `Cores não existem: ${coresFaltando.join(", ")}`
-      };
+      throw new AppError("Uma ou mais cores não existem", 400);
     }
 
-    const produtoAtualizado = await prisma.produtos.update({
-      where: { id: idFormatado },
-      data: {
-        cores: JSON.stringify(coresIds),
-      },
-    });
-
-    return {
-      sucesso: true,
-      dados: serialize(produtoAtualizado)
-    };
-  } catch (error) {
-    return {
-      sucesso: false,
-      erro: "Erro ao atualizar cores: " + error.message
-    };
+    return await this.productRepository.updateCores(produtoId, coresIds);
   }
-}
 
+  async validateStock(items) {
+    if (!Array.isArray(items) || items.length === 0) {
+      throw new AppError("Items são obrigatórios", 400);
+    }
+
+    const ids = items.map(item => item.productId);
+    const produtos = await this.productRepository.checkEstoque(ids);
+
+    if (produtos.length !== ids.length) {
+      throw new AppError("Um ou mais produtos não encontrados", 404);
+    }
+
+    for (const item of items) {
+      const produto = produtos.find(p => p.id === item.productId);
+      if (produto.estoque < item.quantity) {
+        throw new AppError(`Estoque insuficiente para ${produto.nome}`, 400);
+      }
+    }
+
+    return produtos;
+  }
 }
 
 module.exports = ProductService;

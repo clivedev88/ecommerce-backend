@@ -35,21 +35,21 @@ router.post("/fretes", FreteController.calcular);
 
 router.use(rotaProtegida);
 
-router.post(
-  "/",
-  validarUsuario,
-  validarCEP,
-  validarCupom,
-  validarDesconto,
-  validarPrevisaoEntrega,
-  validarPedido,
-  OrderController.create
-);
+// router.post(
+//   "/",
+//   validarUsuario,
+//   validarCEP,
+//   validarCupom,
+//   validarDesconto,
+//   validarPrevisaoEntrega,
+//   validarPedido,
+//   OrderController.create
+// );
 
-router.get("/", verifyAccess, OrderController.findAll);
+// router.get("/", verifyAccess, OrderController.findAll);
 
 router.get("/:id", OrderController.findById);
-router.put("/:id/status", verifyAccess, OrderController.updateStatus);
+// router.put("/:id/status", verifyAccess, OrderController.updateStatus);
 router.delete("/:id", OrderController.delete);
 
 module.exports = router;

@@ -1,55 +1,84 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const prisma = require("../../database/prisma");
+const AppError = require("../../shared/errors/AppError");
+const AuthRepository = require("./auth.repository");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES = process.env.JWT_EXPIRES_IN || '1h';
 
-async function login(email, senha) {
-  try {
-    console.log('📧 Email buscado:', email);
-    
-    const user = await prisma.usuarios.findUnique({
-      where: { email },
-    });
+class AuthService {
+  constructor() {
+    this.repository = new AuthRepository();
+  }
 
-    console.log('👤 Usuário encontrado:', user ? 'Sim' : 'Não');
-    
-    if (!user) {
-      throw new Error("Email não encontrado");
+  async login(email, senha) {
+    if (!email || !senha) {
+      throw new AppError("Email e senha são obrigatórios", 400);
     }
 
-    console.log('Senha fornecida:', senha ? 'Presente' : 'Ausente');
-    console.log('Senha no banco:', user.senha ? 'Presente' : 'Ausente');
+    const user = await this.repository.findUserByEmail(email);
     
-    if (!senha || !user.senha) {
-      throw new Error("Dados de autenticação incompletos");
+    if (!user) {
+      throw new AppError("Email ou senha inválidos", 401);
     }
 
     const passwordIsValid = await bcrypt.compare(senha, user.senha);
     
     if (!passwordIsValid) {
-      throw new Error("Senha incorreta");
+      throw new AppError("Email ou senha inválidos", 401);
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, nivel: user.nivel }, 
+      { 
+        id: user.id, 
+        email: user.email, 
+        nivel: user.nivel,
+        nome: user.nome 
+      }, 
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES }
     );
 
+    try {
+      await this.repository.updateLastLogin(user.id);
+    } catch (error) {
+      console.warn(`⚠️ Não foi possível atualizar último login do usuário ${user.id}`);
+    }
+
     const { senha: _, ...usuarioSemSenha } = user;
 
     return {
-      message: "Login efetuado com sucesso",
       usuario: usuarioSemSenha,
       token,
-      emailVerificado: user.emailVerificado ?? false,
+      emailVerificado: user.emailVerificado || false
     };
-  } catch (error) {
-    console.error('❌ Erro detalhado:', error);
-    throw error;
+  }
+
+  async verificarToken(token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      
+      const user = await this.repository.findUserById(decoded.id);
+      
+      if (!user) {
+        throw new AppError("Usuário não encontrado", 401);
+      }
+
+      return {
+        valido: true,
+        usuario: user,
+        token: decoded
+      };
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new AppError("Token expirado", 401);
+      }
+      if (error.name === 'JsonWebTokenError') {
+        throw new AppError("Token inválido", 401);
+      }
+      throw error;
+    }
   }
 }
 
-module.exports = { login };
+module.exports = AuthService;

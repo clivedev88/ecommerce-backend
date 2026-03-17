@@ -8,8 +8,8 @@ const router = Router();
 router.get("/", CategoryController.findAll);
 router.get("/:id", CategoryController.findById);
 
-router.post("/", rotaProtegida, verifyAccess, CategoryController.create);
-router.put("/:id", rotaProtegida, verifyAccess, CategoryController.update);
-router.delete("/:id", rotaProtegida, verifyAccess, CategoryController.delete);
+// router.post("/", rotaProtegida, verifyAccess, CategoryController.create);
+// router.put("/:id", rotaProtegida, verifyAccess, CategoryController.update);
+// router.delete("/:id", rotaProtegida, verifyAccess, CategoryController.delete);
 
 module.exports = router;
