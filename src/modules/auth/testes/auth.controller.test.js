@@ -1,14 +1,11 @@
 const request = require("supertest");
 const express = require("express");
 
-// mock do service
 jest.mock("../auth.service");
 const { login } = require("../auth.service");
 
-// importa o controller real
 const authController = require("../auth.controller");
 
-// cria um app fake só para teste
 const app = express();
 app.use(express.json());
 app.post("/login", authController.login);
