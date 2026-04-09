@@ -47,27 +47,70 @@ class OrderService {
     return serialize(pedido);
   }
 
+  // static async findAll(userId, isAdmin = false) {
+  //   //
+  //   const where = isAdmin ? {} : { usuario_id: parseInt(userId) };
+
+  //   const pedidos = await prisma.pedidos.findMany({
+  //     where,
+  //     include: {
+  //       usuarios: {
+  //         select: { id: true, nome: true, email: true }
+  //       },
+  //       pedido_produto: {
+  //         include: {
+  //           produtos: true
+  //         }
+  //       }
+  //     },
+  //     orderBy: { id: 'desc' }
+  //   });
+
+  //   return serialize(pedidos);
+  // }
   static async findAll(userId, isAdmin = false) {
-    const where = isAdmin ? {} : { usuario_id: parseInt(userId) };
+    try {
+      const where = isAdmin ? {} : { usuario_id: parseInt(userId) };
 
-    const pedidos = await prisma.pedidos.findMany({
-      where,
-      include: {
-        usuarios: {
-          select: { id: true, nome: true, email: true }
-        },
-        pedido_produto: {
-          include: {
-            produtos: true
+      const pedidos = await prisma.pedidos.findMany({
+        where,
+        include: {
+          usuarios: {
+            select: { 
+              id: true, 
+              nome: true, 
+              email: true,
+              nivel: true 
+            }
+          },
+          pedido_produto: {
+            include: {
+              produtos: {
+                select: {
+                  id: true,
+                  nome: true,
+                  valor: true,
+                  imagem: true
+                }
+              }
+            }
+          },
+          cupons: {
+            select: {
+              id: true,
+              nome: true,
+              valor_desc: true
+            }
           }
-        }
-      },
-      orderBy: { id: 'desc' }
-    });
+        },
+        orderBy: { id: 'desc' }
+      });
 
-    return serialize(pedidos);
+      return serialize(pedidos);
+    } catch (error) {
+      throw new AppError(error.message, 400);
+    }
   }
-
   static async findById(id, userId, isAdmin = false) {
     const pedido = await prisma.pedidos.findUnique({
       where: { id: parseInt(id) },
@@ -119,3 +162,4 @@ class OrderService {
 }
 
 module.exports = OrderService;
+
