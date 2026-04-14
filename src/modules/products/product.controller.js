@@ -1,110 +1,123 @@
-const AppError = require("../../shared/errors/AppError");
 const ProductService = require("./product.service");
 
-// Converter BigInt para Number no JSON
-const serializeProduct = (product) => {
-  if (!product) return null;
-  return {
-    ...product,
-    desconto: product.desconto ? Number(product.desconto) : 0,
-    estoque: product.estoque ? Number(product.estoque) : 0,
-    avaliacoes: product.avaliacoes?.map(av => ({
-      ...av,
-      nota: Number(av.nota)
-    }))
-  };
-};
-
 class ProductController {
-  static async create(req, res, next) {
+  constructor() {
+    this.service = new ProductService();
+  }
+
+  async create(req, res, next) {
     try {
-      const resultado = await ProductService.create(req.body);
-      return res.status(201).json(resultado);
+      const product = await this.service.create(req.body);
+      return res.status(201).json({
+        tipo: "success",
+        mensagem: "Produto criado com sucesso",
+        dados: product
+      });
     } catch (error) {
       next(error);
     }
   }
 
-  static async getAll(req, res, next) {
+  async getAll(req, res, next) {
     try {
-      const resultado = await ProductService.findAll();
-      return res.status(200).json(resultado);
+      const products = await this.service.findAll();
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Produtos encontrados",
+        dados: products
+      });
     } catch (error) {
       next(error);
     }
   }
 
-  static async getById(req, res, next) {
-    try {
-      const { id } = req.params;
-      const resultado = await ProductService.findById(id);
-      return res.status(200).json(resultado);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async update(req, res, next) {
-    try {
-      const { id } = req.params;
-      const resultado = await ProductService.update(id, req.body);
-      return res.status(200).json(resultado);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async delete(req, res, next) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
-      await ProductService.delete(id);
-
-      res.status(200).json({ mensagem: "Produto deletado com sucesso" });
+      const product = await this.service.findById(id);
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Produto encontrado",
+        dados: product
+      });
     } catch (error) {
       next(error);
     }
   }
 
-  static async atualizarTamanhos(req, res, next) {
+  async update(req, res, next) {
+    try {
+      const { id } = req.params;
+      const product = await this.service.update(id, req.body);
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Produto atualizado",
+        dados: product
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async delete(req, res, next) {
+    try {
+      const { id } = req.params;
+      await this.service.delete(id);
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Produto deletado"
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async atualizarTamanhos(req, res, next) {
     try {
       const { id } = req.params;
       const { tamanhos } = req.body;
 
-      if (!Array.isArray(tamanhos)) {
-        throw new AppError("O campo 'tamanhos' deve ser um array", 400);
-      }
+      const updated = await this.service.atualizarTamanhos(id, tamanhos);
 
-      const updated = await ProductService.atualizarTamanhos(id, tamanhos);
-
-      res.status(200).json(resultado);
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Tamanhos atualizados",
+        dados: updated
+      });
     } catch (error) {
       next(error);
     }
   }
 
-  static async atualizarCores(req, res) {
-  try {
-    const { id } = req.params;
-    const { cores } = req.body;
+  async atualizarCores(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { cores } = req.body;
 
-    if (!Array.isArray(cores)) {
-      return res.status(400).json({ 
-        erro: "O campo 'cores' deve ser um array" 
+      const updated = await this.service.atualizarCores(id, cores);
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Cores atualizadas",
+        dados: updated
       });
+    } catch (error) {
+      next(error);
     }
-
-    const resultado = await ProductService.atualizarCores(id, cores);
-
-    if (!resultado.sucesso) {
-      return res.status(400).json({ erro: resultado.erro });
-    }
-
-    res.status(200).json(resultado.dados);
-  } catch (error) {
-    res.status(500).json({ erro: error.message });
   }
-}
 
+  async validateStock(req, res, next) {
+    try {
+      const { items } = req.body;
+      await this.service.validateStock(items);
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Estoque validado com sucesso"
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = ProductController;

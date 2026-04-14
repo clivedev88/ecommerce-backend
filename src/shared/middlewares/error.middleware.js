@@ -3,64 +3,47 @@ const jwt = require("jsonwebtoken");
 const AppError = require("../errors/AppError");
 
 function errorMiddleware(err, req, res, next) {
-  if (res.headersSent) {
-    return next(err);
-  }
+  if (res.headersSent) return next(err);
 
   let status = 500;
-  let message = "Erro interno do servidor";
+  let mensagem = "Erro interno do servidor";
 
   if (err instanceof AppError) {
     status = err.status;
-    message = err.message;
+    mensagem = err.message;
   }
-
-  if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    switch (err.code) {
-      case "P2025":
-        status = 404;
-        message = "Registro não encontrado";
-        break;
-
-      case "P2002": {
-        const field = err.meta?.target?.[0];
-        status = 409;
-
-        if (field) message = `${field} já cadastrado`;
-        else message = "Violação de campo único";
-        break;
-      }
-
-      case "P2003":
-        status = 400;
-        message = "Referência inválida";
-        break;
-
-      default:
-        status = 400;
-        message = "Erro de validação no banco";
+  else if (err instanceof jwt.JsonWebTokenError) {
+    status = 401;
+    mensagem = "Token inválido";
+  }
+  else if (err instanceof jwt.TokenExpiredError) {
+    status = 401;
+    mensagem = "Token expirado";
+  }
+  else if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === "P2025") {
+      status = 404;
+      mensagem = "Registro não encontrado";
+    } else if (err.code === "P2002") {
+      status = 409;
+      mensagem = "Já existe um registro com este dado";
+    } else {
+      status = 400;
+      mensagem = "Erro de validação no banco";
     }
   }
-
-  if (err instanceof jwt.JsonWebTokenError) {
-    status = 401;
-    message = "Token inválido";
-  }
-
-  if (err instanceof jwt.TokenExpiredError) {
-    status = 401;
-    message = "Token expirado";
-  }
-
-  if (err?.type === "entity.parse.failed") {
+  else if (err?.type === "entity.parse.failed") {
     status = 400;
-    message = "JSON inválido";
+    mensagem = "JSON inválido";
   }
+
+  console.error(`❌ ${status} - ${mensagem}`, err.stack || err);
 
   return res.status(status).json({
-    message,
+    tipo: "error",
+    mensagem,
     timestamp: new Date().toISOString(),
-    path: req.originalUrl,
+    ...(process.env.NODE_ENV === "development" && { detalhes: err.message })
   });
 }
 

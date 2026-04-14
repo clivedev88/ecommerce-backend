@@ -1,0 +1,8 @@
+{
+  "nome": "Teste Produto",
+  "valor": 10,
+  "descricao": "Descricao teste",
+  "categoria_id": 1,
+  "tamanhos": ["P", "M"],
+  "cores": ["Azul", "Vermelho"]
+}

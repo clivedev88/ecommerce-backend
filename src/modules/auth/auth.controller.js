@@ -1,24 +1,50 @@
-const { login } = require("./auth.service");
+const AuthService = require("./auth.service");
 
-exports.login = async (req, res) => {
-  try {
-    const { email, senha } = req.body;
+const authService = new AuthService();
 
-    if (!email || !senha) {
-      return res.status(400).json({ 
-        erro: "Email e senha são obrigatórios" 
+class AuthController {
+  async login(req, res, next) {
+    try {
+      const { email, senha } = req.body;
+
+      const resultado = await authService.login(email, senha);
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Login efetuado com sucesso",
+        dados: {
+          usuario: resultado.usuario,
+          token: resultado.token,
+          emailVerificado: resultado.emailVerificado
+        }
       });
+    } catch (error) {
+      next(error);
     }
-
-    const resultado = await login(email, senha);
-    
-    res.json(resultado);
-    
-  } catch (error) {
-    console.error("Erro no login:", error.message);
-    
-    res.status(401).json({ 
-      erro: error.message 
-    });
   }
-};
+
+  async verificarToken(req, res, next) {
+    try {
+      const token = req.headers.authorization?.split(' ')[1];
+
+      if (!token) {
+        return res.status(400).json({
+          tipo: "error",
+          mensagem: "Token não fornecido"
+        });
+      }
+
+      const resultado = await authService.verificarToken(token);
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Token válido",
+        dados: resultado
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+module.exports = new AuthController();

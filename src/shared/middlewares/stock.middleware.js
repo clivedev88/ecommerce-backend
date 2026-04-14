@@ -69,3 +69,42 @@ async function validateStock(req, _res, next) {
 }
 
 module.exports = validateStock;
+
+
+
+
+
+// src/shared/middlewares/stock.middleware.js
+// const AppError = require("../errors/AppError");
+// const ProductService = require("../modules/products/product.service");
+
+// const productService = new ProductService();
+
+// async function validateStock(req, res, next) {
+//   try {
+//     const { items } = req.body;
+
+//     if (!Array.isArray(items) || items.length === 0) {
+//       throw new AppError("Items são obrigatórios", 400);
+//     }
+
+//     // Valida formato dos items
+//     for (const item of items) {
+//       if (typeof item.productId !== "number" || typeof item.quantity !== "number") {
+//         throw new AppError("productId e quantity devem ser números", 400);
+//       }
+//       if (item.quantity <= 0) {
+//         throw new AppError("quantity deve ser maior que zero", 400);
+//       }
+//     }
+
+//     // Valida estoque (chama o service)
+//     await productService.validateStock(items);
+    
+//     next();
+//   } catch (error) {
+//     next(error);
+//   }
+// }
+
+// module.exports = validateStock;

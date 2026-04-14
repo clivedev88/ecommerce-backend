@@ -1,49 +1,107 @@
 const CategoryService = require("./category.service");
 
 class CategoryController {
-  static async create(req, res) {
+  constructor() {
+    this.service = new CategoryService();
+  }
+
+  async create(req, res, next) {
     try {
-      const category = await CategoryService.create(req.body);
-      res.status(201).json(category);
+      const category = await this.service.create(req.body);
+
+      return res.status(201).json({
+        tipo: "success",
+        mensagem: "Categoria criada com sucesso",
+        dados: category
+      });
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      next(error);
     }
   }
 
-  static async findAll(req, res) {
+  async getAll(req, res, next) {
     try {
-      const categories = await CategoryService.findAll();
-      res.json(categories);
+      const categories = await this.service.findAll();
+
+      if (!categories || categories.length === 0) {
+        return res.status(200).json({
+          tipo: "warning",
+          mensagem: "Nenhuma categoria encontrada",
+          dados: []
+        });
+      }
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Categorias encontradas",
+        dados: categories,
+        quantidade: categories.length
+      });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
     }
   }
 
-  static async findById(req, res) {
+  async getById(req, res, next) {
     try {
-      const category = await CategoryService.findById(req.params.id);
-      if (!category) return res.status(404).json({ error: "Categoria não encontrada" });
-      res.json(category);
+      const { id } = req.params;
+      const category = await this.service.findById(id);
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Categoria encontrada",
+        dados: category
+      });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
     }
   }
 
-  static async update(req, res) {
+  async update(req, res, next) {
     try {
-      const category = await CategoryService.update(req.params.id, req.body);
-      res.json(category);
+      const { id } = req.params;
+      const category = await this.service.update(id, req.body);
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Categoria atualizada",
+        dados: category
+      });
     } catch (error) {
-      res.status(404).json({ error: error.message });
+      next(error);
     }
   }
 
-  static async delete(req, res) {
+  async delete(req, res, next) {
     try {
-      await CategoryService.delete(req.params.id);
-      res.status(204).send();
+      const { id } = req.params;
+      await this.service.delete(id);
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Categoria deletada"
+      });
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      next(error);
+    }
+  }
+
+  async associateProduct(req, res, next) {
+    try {
+      const { productId, categoryId } = req.body;
+
+      const result = await this.service.associateProduct(productId, categoryId);
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: result.mensagem,
+        dados: {
+          produto: result.produto,
+          categoria: result.categoria
+        }
+      });
+    } catch (error) {
+      next(error);
     }
   }
 }

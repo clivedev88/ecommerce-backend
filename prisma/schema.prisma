@@ -83,8 +83,8 @@
     desconto        BigInt?           @default(0)
     estoque         BigInt
     categoria_id    Int
-    tamanhos        String            @db.VarChar(255)
-    cores           String            @db.VarChar(255)
+    tamanhos        Json              @db.Json
+    cores           Json              @db.Json
     altura          String            @db.VarChar(255)
     largura         String            @db.VarChar(255)
     comprimento     String            @db.VarChar(255)
