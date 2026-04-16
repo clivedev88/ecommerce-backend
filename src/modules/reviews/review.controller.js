@@ -1,50 +1,128 @@
 const ReviewService = require("./review.service");
-const serialize = require("../../shared/utils/serialize");
 
 class ReviewController {
-  static async create(req, res) {
+  constructor() {
+    this.service = new ReviewService();
+  }
+
+  async create(req, res, next) {
     try {
-      const review = await ReviewService.create(req.body);
-      res.status(201).json(serialize(review));
+      const reviewData = {
+        ...req.body,
+        usuario_id: req.usuarioId
+      };
+      
+      const review = await this.service.create(reviewData);
+
+      return res.status(201).json({
+        tipo: "success",
+        mensagem: "Avaliação criada com sucesso",
+        dados: review
+      });
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      next(error);
     }
   }
 
-  static async findAll(req, res) {
+  async getAll(req, res, next) {
     try {
-      const reviews = await ReviewService.findAll();
-      res.json(serialize(reviews));
+      const reviews = await this.service.findAll();
+
+      if (!reviews || reviews.length === 0) {
+        return res.status(200).json({
+          tipo: "warning",
+          mensagem: "Nenhuma avaliação encontrada",
+          dados: []
+        });
+      }
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Avaliações encontradas",
+        dados: reviews
+      });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
     }
   }
 
-  static async findById(req, res) {
+  async getById(req, res, next) {
     try {
-      const review = await ReviewService.findById(req.params.id);
-      if (!review) return res.status(404).json({ error: "Avaliação não encontrada" });
-      res.json(serialize(review));
+      const { id } = req.params;
+      const review = await this.service.findById(id);
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Avaliação encontrada",
+        dados: review
+      });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
     }
   }
 
-  static async update(req, res) {
+  async getByProduct(req, res, next) {
     try {
-      const review = await ReviewService.update(req.params.id, req.body);
-      res.json(serialize(review));
+      const { productId } = req.params;
+      const result = await this.service.findByProduct(productId);
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Avaliações do produto",
+        dados: result
+      });
     } catch (error) {
-      res.status(404).json({ error: error.message });
+      next(error);
     }
   }
 
-  static async delete(req, res) {
+  async getMyReviews(req, res, next) {
     try {
-      await ReviewService.delete(req.params.id);
-      res.status(204).send();
+      const userId = req.usuarioId;
+      const result = await this.service.findByUser(userId);
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Minhas avaliações",
+        dados: result
+      });
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      next(error);
+    }
+  }
+
+  async update(req, res, next) {
+    try {
+      const { id } = req.params;
+      const userId = req.usuarioId;
+      const isAdmin = req.usuario?.nivel === 'admin';
+
+      const review = await this.service.update(id, req.body, userId, isAdmin);
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Avaliação atualizada",
+        dados: review
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async delete(req, res, next) {
+    try {
+      const { id } = req.params;
+      const userId = req.usuarioId;
+      const isAdmin = req.usuario?.nivel === 'admin';
+
+      await this.service.delete(id, userId, isAdmin);
+
+      return res.status(200).json({
+        tipo: "success",
+        mensagem: "Avaliação deletada"
+      });
+    } catch (error) {
+      next(error);
     }
   }
 }
