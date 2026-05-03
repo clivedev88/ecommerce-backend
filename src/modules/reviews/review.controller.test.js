@@ -1,17 +1,30 @@
-const ReviewController = require("./review.controller");
-const ReviewService = require("./review.service");
 const AppError = require("../../shared/errors/AppError");
 
+// Mock do ReviewService
 jest.mock("./review.service");
+
+const ReviewService = require("./review.service");
+const ReviewController = require("./review.controller");
 
 describe("ReviewController", () => {
   let reviewController;
+  let mockService;
   let mockReq;
   let mockRes;
   let mockNext;
 
   beforeEach(() => {
-    ReviewService.mockClear();
+    mockService = {
+      create: jest.fn(),
+      findAll: jest.fn(),
+      findById: jest.fn(),
+      findByProduct: jest.fn(),
+      findByUser: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn()
+    };
+    
+    ReviewService.mockImplementation(() => mockService);
     reviewController = new ReviewController();
     
     mockReq = {
@@ -47,7 +60,7 @@ describe("ReviewController", () => {
         produto_id: 10
       };
 
-      ReviewService.prototype.create = jest.fn().mockResolvedValue(mockReview);
+      mockService.create.mockResolvedValue(mockReview);
 
       await reviewController.create(mockReq, mockRes, mockNext);
 
@@ -63,7 +76,7 @@ describe("ReviewController", () => {
       mockReq.body = { nota: 5, descricao: "Teste", produto_id: 10 };
 
       const error = new AppError("Erro ao criar", 400);
-      ReviewService.prototype.create = jest.fn().mockRejectedValue(error);
+      mockService.create.mockRejectedValue(error);
 
       await reviewController.create(mockReq, mockRes, mockNext);
 
@@ -74,7 +87,7 @@ describe("ReviewController", () => {
       mockReq.body = { nota: 4, descricao: "Bom", produto_id: 20 };
       mockReq.usuarioId = 5;
 
-      ReviewService.prototype.create = jest.fn().mockResolvedValue({
+      mockService.create.mockResolvedValue({
         id: 1,
         nota: 4,
         usuario_id: 5,
@@ -83,7 +96,7 @@ describe("ReviewController", () => {
 
       await reviewController.create(mockReq, mockRes, mockNext);
 
-      expect(ReviewService.prototype.create).toHaveBeenCalledWith({
+      expect(mockService.create).toHaveBeenCalledWith({
         nota: 4,
         descricao: "Bom",
         produto_id: 20,
@@ -99,7 +112,7 @@ describe("ReviewController", () => {
         { id: 2, nota: 4, descricao: "Bom", usuario_id: 2, produto_id: 10 }
       ];
 
-      ReviewService.prototype.findAll = jest.fn().mockResolvedValue(mockReviews);
+      mockService.findAll.mockResolvedValue(mockReviews);
 
       await reviewController.getAll(mockReq, mockRes, mockNext);
 
@@ -112,7 +125,7 @@ describe("ReviewController", () => {
     });
 
     it("deveria retornar aviso quando não há avaliações", async () => {
-      ReviewService.prototype.findAll = jest.fn().mockResolvedValue([]);
+      mockService.findAll.mockResolvedValue([]);
 
       await reviewController.getAll(mockReq, mockRes, mockNext);
 
@@ -125,7 +138,7 @@ describe("ReviewController", () => {
     });
 
     it("deveria retornar aviso quando resultado é null", async () => {
-      ReviewService.prototype.findAll = jest.fn().mockResolvedValue(null);
+      mockService.findAll.mockResolvedValue(null);
 
       await reviewController.getAll(mockReq, mockRes, mockNext);
 
@@ -139,7 +152,7 @@ describe("ReviewController", () => {
 
     it("deveria passar erro para next quando falhar", async () => {
       const error = new AppError("Erro ao buscar", 500);
-      ReviewService.prototype.findAll = jest.fn().mockRejectedValue(error);
+      mockService.findAll.mockRejectedValue(error);
 
       await reviewController.getAll(mockReq, mockRes, mockNext);
 
@@ -159,7 +172,7 @@ describe("ReviewController", () => {
         produto_id: 10
       };
 
-      ReviewService.prototype.findById = jest.fn().mockResolvedValue(mockReview);
+      mockService.findById.mockResolvedValue(mockReview);
 
       await reviewController.getById(mockReq, mockRes, mockNext);
 
@@ -175,7 +188,7 @@ describe("ReviewController", () => {
       mockReq.params = { id: "99999" };
 
       const error = new AppError("Avaliação não encontrada", 404);
-      ReviewService.prototype.findById = jest.fn().mockRejectedValue(error);
+      mockService.findById.mockRejectedValue(error);
 
       await reviewController.getById(mockReq, mockRes, mockNext);
 
@@ -196,7 +209,7 @@ describe("ReviewController", () => {
         ]
       };
 
-      ReviewService.prototype.findByProduct = jest.fn().mockResolvedValue(mockResult);
+      mockService.findByProduct.mockResolvedValue(mockResult);
 
       await reviewController.getByProduct(mockReq, mockRes, mockNext);
 
@@ -212,7 +225,7 @@ describe("ReviewController", () => {
       mockReq.params = { productId: "10" };
 
       const error = new AppError("Erro ao buscar", 500);
-      ReviewService.prototype.findByProduct = jest.fn().mockRejectedValue(error);
+      mockService.findByProduct.mockRejectedValue(error);
 
       await reviewController.getByProduct(mockReq, mockRes, mockNext);
 
@@ -232,11 +245,11 @@ describe("ReviewController", () => {
         ]
       };
 
-      ReviewService.prototype.findByUser = jest.fn().mockResolvedValue(mockResult);
+      mockService.findByUser.mockResolvedValue(mockResult);
 
       await reviewController.getMyReviews(mockReq, mockRes, mockNext);
 
-      expect(ReviewService.prototype.findByUser).toHaveBeenCalledWith(1);
+      expect(mockService.findByUser).toHaveBeenCalledWith(1);
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({
         tipo: "success",
@@ -249,7 +262,7 @@ describe("ReviewController", () => {
       mockReq.usuarioId = 1;
 
       const error = new AppError("Erro ao buscar", 500);
-      ReviewService.prototype.findByUser = jest.fn().mockRejectedValue(error);
+      mockService.findByUser.mockRejectedValue(error);
 
       await reviewController.getMyReviews(mockReq, mockRes, mockNext);
 
@@ -272,7 +285,7 @@ describe("ReviewController", () => {
         produto_id: 10
       };
 
-      ReviewService.prototype.update = jest.fn().mockResolvedValue(mockUpdated);
+      mockService.update.mockResolvedValue(mockUpdated);
 
       await reviewController.update(mockReq, mockRes, mockNext);
 
@@ -290,11 +303,11 @@ describe("ReviewController", () => {
       mockReq.usuarioId = 1;
       mockReq.usuario = { nivel: "cliente" };
 
-      ReviewService.prototype.update = jest.fn().mockResolvedValue({});
+      mockService.update.mockResolvedValue({});
 
       await reviewController.update(mockReq, mockRes, mockNext);
 
-      expect(ReviewService.prototype.update).toHaveBeenCalledWith("1", { nota: 4 }, 1, false);
+      expect(mockService.update).toHaveBeenCalledWith("1", { nota: 4 }, 1, false);
     });
 
     it("deveria passar isAdmin=true para admin", async () => {
@@ -303,11 +316,11 @@ describe("ReviewController", () => {
       mockReq.usuarioId = 1;
       mockReq.usuario = { nivel: "admin" };
 
-      ReviewService.prototype.update = jest.fn().mockResolvedValue({});
+      mockService.update.mockResolvedValue({});
 
       await reviewController.update(mockReq, mockRes, mockNext);
 
-      expect(ReviewService.prototype.update).toHaveBeenCalledWith("1", { nota: 4 }, 1, true);
+      expect(mockService.update).toHaveBeenCalledWith("1", { nota: 4 }, 1, true);
     });
 
     it("deveria passar erro para next", async () => {
@@ -315,7 +328,7 @@ describe("ReviewController", () => {
       mockReq.body = { nota: 4 };
 
       const error = new AppError("Permissão negada", 403);
-      ReviewService.prototype.update = jest.fn().mockRejectedValue(error);
+      mockService.update.mockRejectedValue(error);
 
       await reviewController.update(mockReq, mockRes, mockNext);
 
@@ -329,7 +342,7 @@ describe("ReviewController", () => {
       mockReq.usuarioId = 1;
       mockReq.usuario = { nivel: "cliente" };
 
-      ReviewService.prototype.delete = jest.fn().mockResolvedValue(true);
+      mockService.delete.mockResolvedValue(true);
 
       await reviewController.delete(mockReq, mockRes, mockNext);
 
@@ -345,11 +358,11 @@ describe("ReviewController", () => {
       mockReq.usuarioId = 1;
       mockReq.usuario = { nivel: "cliente" };
 
-      ReviewService.prototype.delete = jest.fn().mockResolvedValue(true);
+      mockService.delete.mockResolvedValue(true);
 
       await reviewController.delete(mockReq, mockRes, mockNext);
 
-      expect(ReviewService.prototype.delete).toHaveBeenCalledWith("1", 1, false);
+      expect(mockService.delete).toHaveBeenCalledWith("1", 1, false);
     });
 
     it("deveria passar isAdmin=true para admin", async () => {
@@ -357,18 +370,18 @@ describe("ReviewController", () => {
       mockReq.usuarioId = 1;
       mockReq.usuario = { nivel: "admin" };
 
-      ReviewService.prototype.delete = jest.fn().mockResolvedValue(true);
+      mockService.delete.mockResolvedValue(true);
 
       await reviewController.delete(mockReq, mockRes, mockNext);
 
-      expect(ReviewService.prototype.delete).toHaveBeenCalledWith("1", 1, true);
+      expect(mockService.delete).toHaveBeenCalledWith("1", 1, true);
     });
 
     it("deveria passar erro para next", async () => {
       mockReq.params = { id: "1" };
 
       const error = new AppError("Permissão negada", 403);
-      ReviewService.prototype.delete = jest.fn().mockRejectedValue(error);
+      mockService.delete.mockRejectedValue(error);
 
       await reviewController.delete(mockReq, mockRes, mockNext);
 
